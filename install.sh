@@ -4,17 +4,35 @@ cd "$(dirname "$0")"
 
 # rootかの確認
 if [ $(id -u) -ne 0 ]; then
-    echo "This script must be run as root." >&2
+    echo "このスクリプトは root ユーザーでのみ実行できます。" >&2
     exit 1
 fi
 
-echo "Installing autoswap binary file..."
-cp ./autoswap /usr/local/bin/autoswap
-chmod +x /usr/local/bin/autoswap
+error() {
+    echo "インストールに失敗しました。"
+    echo "インストールを中断します。"
+    exit 1
+}
+# 確認
+printf "本当に autoswap をインストールしますか？ [Y/n] "
+read really
+if [ "${really}" = "Y" ] || [ "${really}" = "y" ] || [ "${really}" = "" ]; then
+    # インストール
+    echo "実行ファイルをインストールしています..."
+    cp ./autoswap /usr/local/bin/autoswap > /dev/null || error
+    chmod +x /usr/local/bin/autoswap > /dev/null || error
 
-echo "Installing autoswap configuration file..."
-cp ./autoswap.conf /usr/local/etc/autoswap.conf
+    echo "設定ファイルをインストールしています..."
+    cp ./autoswap.conf /usr/local/etc/autoswap.conf > /dev/null || error
 
-echo "Installing autoswap systemd service file..."
-cp ./autoswap.service /etc/systemd/system/autoswap.service
-systemctl daemon-reload
+    echo "サービスファイルをインストールしています..."
+    cp ./autoswap.service /etc/systemd/system/autoswap.service > /dev/null || error
+    systemctl daemon-reload > /dev/null || error
+
+    echo "インストールが完了しました。"
+    exit 0
+
+else
+    echo "インストールを中断しました。"
+    exit 0
+fi

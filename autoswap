@@ -2,19 +2,33 @@
 
 # rootかの確認
 if [ $(id -u) -ne 0 ]; then
-    echo "This script must be run as root." >&2
+    echo "このスクリプトは root ユーザーでのみ実行できます。" >&2
     exit 1
 fi
 
 case "$1" in
     stop)
-        while [ "$(cat /tmp/autoswap_busy)" -ne "0" ]; do sleep 0.9; done; kill -TERM $2; exit 0 ;;
+        # 殺して良くなってから殺す
+        while [ "$(cat /tmp/autoswap_busy)" -ne "0" ]; do
+            sleep 0.9
+        done
+
+        kill -TERM $2
+
+        exit 0 ;;
     reload)
-        while [ "$(cat /tmp/autoswap_busy)" -ne "0" ]; do sleep 0.9; done; kill -HUP $2; exit 0 ;;
+        # 殺して良くなってから殺す
+        while [ "$(cat /tmp/autoswap_busy)" -ne "0" ]; do
+            sleep 0.9
+        done
+
+        kill -HUP $2
+
+        exit 0 ;;
     esac
 
 # 設定ファイルより変数を読み込み
-. /usr/local/etc/autoswap.conf || { echo "Failed to load configuration file" >&2; exit 1; }
+. /usr/local/etc/autoswap.conf || { echo "設定ファイルの読み込みに失敗しました。" >&2; exit 1; }
 
 # 数字かどうかを判定
 isnum() {
@@ -49,20 +63,20 @@ while true; do
 
     if [ ${free} -lt ${WHEN_TO_SWAP} ]; then
         # スワップファイルの作成と有効化
-        mkswap -U clear --size ${SWAP_FILE_SIZE}M --file /usr/local/share/autoswap/${num} > /dev/null || echo "Failed to create swap file" >&2
-        swapon /usr/local/share/autoswap/${num}  > /dev/null || echo "Failed to enable swap file" >&2
+        mkswap -U clear --size ${SWAP_FILE_SIZE}M --file /usr/local/share/autoswap/${num} > /dev/null || echo "スワップファイルの作成に失敗しました。" >&2
+        swapon /usr/local/share/autoswap/${num}  > /dev/null || echo "スワップファイルの有効化に失敗しました。" >&2
 
-        echo "Added swap file: /usr/local/share/autoswap/${num}"
+        echo "スワップファイルを追加しました: /usr/local/share/autoswap/${num}"
 
         # 足し算
         num=$((num + 1))
 
     elif [ ${free} -gt ${WHEN_TO_UNSWAP} ] && [ ${num} -gt 0 ]; then
         # スワップファイルの無効化と削除
-        swapoff /usr/local/share/autoswap/$((num - 1)) > /dev/null || echo "Failed to disable swap file" >&2
-        rm /usr/local/share/autoswap/$((num - 1)) > /dev/null || echo "Failed to remove swap file" >&2
+        swapoff /usr/local/share/autoswap/$((num - 1)) > /dev/null || echo "スワップファイルの無効化に失敗しました。" >&2
+        rm /usr/local/share/autoswap/$((num - 1)) > /dev/null || echo "スワップファイルの削除に失敗しました。" >&2
 
-        echo "Removed swap file: /usr/local/share/autoswap/$((num - 1))"
+        echo "スワップファイルを削除しました: /usr/local/share/autoswap/$((num - 1))"
 
         # 引き算
         num=$((num - 1))
