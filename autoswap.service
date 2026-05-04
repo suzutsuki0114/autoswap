@@ -1,0 +1,11 @@
+[Unit]
+Description=autoswap made by suzutsuki0114
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/autoswap
+ExecStop=/usr/local/bin/autoswap stop ${MAINPID}
+ExecReload=/usr/local/bin/autoswap reload ${MAINPID}
+
+[Install]
+WantedBy=multi-user.target
