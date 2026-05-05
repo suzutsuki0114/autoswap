@@ -64,7 +64,7 @@ while true; do
     if [ ${free} -lt ${WHEN_TO_SWAP} ]; then
         # スワップファイルの作成と有効化
         mkswap -U clear --size ${SWAP_FILE_SIZE}M --file /usr/local/share/autoswap/${num} > /dev/null || echo "スワップファイルの作成に失敗しました。" >&2
-        swapon /usr/local/share/autoswap/${num}  > /dev/null || echo "スワップファイルの有効化に失敗しました。" >&2
+        swapon -p ${PRIORITY} /usr/local/share/autoswap/${num}  > /dev/null || echo "スワップファイルの有効化に失敗しました。" >&2
 
         echo "スワップファイルを追加しました: /usr/local/share/autoswap/${num}"
 
